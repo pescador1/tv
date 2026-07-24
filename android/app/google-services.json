@@ -1,0 +1,44 @@
+// Create a project in https://console.cloud.google.com/
+// Then generate google-services.json from https://firebase.google.com/
+// The result should look like the following
+// Download the google-services.json file in the current folder (don't worry, it is git ignored)
+{
+  "project_info": {
+    "project_number": "99999999999",
+    "firebase_url": "https://tts-and-nearby-poc.firebaseio.com",
+    "project_id": "tts-and-nearby-poc",
+    "storage_bucket": "tts-and-nearby-poc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:999999999999:android:a9a9a9a9a9a9a9a9a",
+        "android_client_info": {
+          "package_name": "fr.baldir.poc.texttospeech"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "999999999999-aaaa9aa9aaa9aaa9a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "A99aa999aAAA999a-E4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "9999999999999-aa9aaa9aaa9aa9aa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
