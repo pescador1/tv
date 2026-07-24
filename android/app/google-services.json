@@ -14,7 +14,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:999999999999:android:a9a9a9a9a9a9a9a9a",
         "android_client_info": {
-          "package_name": "fr.baldir.poc.texttospeech"
+          "package_name": "com.hrtv.app"
         }
       },
       "oauth_client": [
