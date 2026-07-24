@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -122,6 +123,10 @@ class _WebViewPageState extends State<WebViewPage> {
           ),
         )
         ..loadRequest(Uri.parse('https://app.hr-tech.site/'));
+
+      if (controller.platform is AndroidWebViewController) {
+        (controller.platform as AndroidWebViewController).setMediaPlaybackRequiresUserGesture(false);
+      }
     }
   }
 
@@ -162,6 +167,19 @@ class _WebViewPageState extends State<WebViewPage> {
     );
   }
 
+  String _getLoadingMessage(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (lang.startsWith('ar')) {
+      return 'جاري تحميل القنوات...';
+    } else if (lang.startsWith('fr')) {
+      return 'Chargement des chaînes...';
+    } else if (lang.startsWith('es')) {
+      return 'Cargando canales...';
+    } else {
+      return 'Loading channels...';
+    }
+  }
+
   Widget _buildLoadingScreen() {
     return Container(
       color: const Color(0xFF0F172A),
@@ -169,18 +187,45 @@ class _WebViewPageState extends State<WebViewPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.tv, size: 90, color: Colors.blueAccent),
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.3),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Image.asset(
+                  'assets/icon/icon.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.tv, size: 80, color: Colors.blueAccent),
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
             const Text(
               'HR TV',
-              style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 2),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
             ),
             const SizedBox(height: 30),
             const CircularProgressIndicator(color: Colors.blueAccent),
             const SizedBox(height: 20),
-            const Text(
-              'جاري تحميل القنوات...',
-              style: TextStyle(color: Colors.white70, fontSize: 16),
+            Text(
+              _getLoadingMessage(context),
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
             ),
           ],
         ),
@@ -189,6 +234,25 @@ class _WebViewPageState extends State<WebViewPage> {
   }
 
   Widget _buildNoInternetScreen() {
+    final lang = Localizations.localeOf(context).languageCode.toLowerCase();
+    String title = 'لا يوجد اتصال بالإنترنت';
+    String message = 'يرجى التحقق من اتصالك بالشبكة والمحاولة مجدداً.';
+    String btnText = 'إعادة المحاولة';
+
+    if (lang.startsWith('fr')) {
+      title = 'Pas de connexion Internet';
+      message = 'Veuillez vérifier votre réseau et réessayer.';
+      btnText = 'Réessayer';
+    } else if (lang.startsWith('es')) {
+      title = 'Sin conexión a Internet';
+      message = 'Por favor comprueba tu red e inténtalo de nuevo.';
+      btnText = 'Reintentar';
+    } else if (!lang.startsWith('ar')) {
+      title = 'No Internet Connection';
+      message = 'Please check your network connection and try again.';
+      btnText = 'Retry';
+    }
+
     return Container(
       width: double.infinity,
       color: const Color(0xFF0F172A),
@@ -202,9 +266,9 @@ class _WebViewPageState extends State<WebViewPage> {
             color: Colors.redAccent,
           ),
           const SizedBox(height: 30),
-          const Text(
-            'لا يوجد اتصال بالإنترنت',
-            style: TextStyle(
+          Text(
+            title,
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -212,22 +276,22 @@ class _WebViewPageState extends State<WebViewPage> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 15),
-          const Text(
-            'يرجى التحقق من اتصالك بالشبكة والمحاولة مجدداً.',
-            style: TextStyle(fontSize: 16, color: Colors.white70),
+          Text(
+            message,
+            style: const TextStyle(fontSize: 16, color: Colors.white70),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
           ElevatedButton.icon(
             onPressed: _retry,
             icon: const Icon(Icons.refresh),
-            label: const Text('إعادة المحاولة', style: TextStyle(fontSize: 18)),
+            label: Text(btnText, style: const TextStyle(fontSize: 18)),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
