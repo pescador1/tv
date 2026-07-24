@@ -87,6 +87,7 @@ class _WebViewPageState extends State<WebViewPage> {
     if (isSupported) {
       controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setUserAgent('Mozilla/5.0 (Linux; Android 10; Mobile) PanelTV_Official HRTV_App')
         ..setBackgroundColor(const Color(0xFF0F172A))
         ..addJavaScriptChannel(
           'FlutterCast',
