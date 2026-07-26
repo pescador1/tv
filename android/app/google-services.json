@@ -1,41 +1,26 @@
-// Create a project in https://console.cloud.google.com/
-// Then generate google-services.json from https://firebase.google.com/
-// The result should look like the following
-// Download the google-services.json file in the current folder (don't worry, it is git ignored)
 {
   "project_info": {
-    "project_number": "99999999999",
-    "firebase_url": "https://tts-and-nearby-poc.firebaseio.com",
-    "project_id": "tts-and-nearby-poc",
-    "storage_bucket": "tts-and-nearby-poc.appspot.com"
+    "project_number": "329192317241",
+    "project_id": "hrtv-32b35",
+    "storage_bucket": "hrtv-32b35.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:999999999999:android:a9a9a9a9a9a9a9a9a",
+        "mobilesdk_app_id": "1:329192317241:android:554ef849b419d90b5b08e8",
         "android_client_info": {
           "package_name": "com.hrtv.app"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "999999999999-aaaa9aa9aaa9aaa9a.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "A99aa999aAAA999a-E4"
+          "current_key": "AIzaSyDs10gImz5yPF3XGsPoPhMIiUtWrEioR_M"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "9999999999999-aa9aaa9aaa9aa9aa.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
