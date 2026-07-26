@@ -116,10 +116,14 @@ class _WebViewPageState extends State<WebViewPage> {
               });
             },
             onWebResourceError: (WebResourceError error) {
-              setState(() {
-                hasError = true;
-                isLoading = false;
-              });
+              if (error.isForMainFrame ?? true) {
+                if (mounted) {
+                  setState(() {
+                    hasError = true;
+                    isLoading = false;
+                  });
+                }
+              }
             },
           ),
         )
