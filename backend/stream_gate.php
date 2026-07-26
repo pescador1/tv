@@ -64,7 +64,25 @@ if (!$channel || empty($channel['stream_url'])) {
 
 $stream_url = $channel['stream_url'];
 
-// Redirect to player.php or proxy stream URL
+// If stream URL is a shoffree page, extract the direct m3u8 link first to prevent ERR_BLOCKED_BY_RESPONSE
+if (strpos($stream_url, 'shoffree.sbs') !== false || strpos($stream_url, '/live/') !== false || strpos($stream_url, '/streem/') !== false) {
+    require_once __DIR__ . '/stream_extractor.php';
+    $shoffree_token = $stream_url;
+    if (preg_match('/watch=([^&]+)/', $shoffree_token, $m)) {
+        $shoffree_token = $m[1];
+    } elseif (preg_match('/\/live\/([^\/?]+)/', $shoffree_token, $m)) {
+        $shoffree_token = $m[1];
+    } elseif (preg_match('/\/streem\/live\/([^\/?]+)/', $shoffree_token, $m)) {
+        $shoffree_token = $m[1];
+    }
+    
+    $extracted = extract_stream_from_shoffree($shoffree_token);
+    if ($extracted && isset($extracted['success']) && $extracted['success'] && !empty($extracted['best_url'])) {
+        $stream_url = $extracted['best_url'];
+    }
+}
+
+// Redirect to direct m3u8 stream URL
 header("Location: " . $stream_url);
 exit();
 ?>
