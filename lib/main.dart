@@ -20,9 +20,20 @@ void main() async {
     await Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     
-    // Request permission for iOS
-    if (Platform.isIOS) {
-      await FirebaseMessaging.instance.requestPermission();
+    // Request notification permission (Android 13+ and iOS)
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    
+    // Subscribe to 'all' topic to receive push notifications
+    await FirebaseMessaging.instance.subscribeToTopic('all');
+    
+    // Get device locale and subscribe to language-specific topic
+    String langCode = Platform.localeName.split('_')[0].toLowerCase();
+    if (['fr', 'en', 'es', 'ar'].contains(langCode)) {
+      await FirebaseMessaging.instance.subscribeToTopic('lang_$langCode');
     }
   } catch (e) {
     print("Firebase initialization error: $e");
