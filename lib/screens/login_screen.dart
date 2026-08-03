@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../constants.dart';
 import '../services/api_service.dart';
 import 'home_screen.dart';
@@ -176,6 +177,35 @@ class _LoginScreenState extends State<LoginScreen> {
                             'Connect',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextButton.icon(
+                  onPressed: () async {
+                    final Uri url = Uri.parse('http://app.hr-tech.site/gene/');
+                    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Could not open the browser')),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.card_giftcard, color: Constants.primaryColor),
+                  label: const Text(
+                    'احصل على تفعيل مجاني',
+                    style: TextStyle(
+                      color: Constants.primaryColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    backgroundColor: Constants.primaryColor.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
                 ),
               ],
