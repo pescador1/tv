@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class Constants {
   // Updated with the provided domain
-  static const String apiUrl = 'http://app.hr-tech.site/api_mobile.php';
+  static const String apiUrl = 'http://app.hr-tech.site/app/api_mobile.php';
   
   // App Colors
   static const Color primaryColor = Color(0xFF3B82F6);
