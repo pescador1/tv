@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class Constants {
-  // TODO: Update this to match the actual folder path of your PHP backend
-  static const String apiUrl = 'https://app.hr-tech.site/apk iptv/api_mobile.php';
+  // Updated with the provided domain
+  static const String apiUrl = 'http://app.hr-tech.site/api_mobile.php';
   
   // App Colors
   static const Color primaryColor = Color(0xFF3B82F6);
