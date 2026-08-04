@@ -32,10 +32,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Future<void> _initializePlayer() async {
     try {
       // 1. We resolve the redirect URL manually because VLC sometimes fails with HTTP 302 redirects
-      final response = await http.Request('GET', Uri.parse(widget.playUrl)).send();
+      final client = http.Client();
+      final request = http.Request('GET', Uri.parse(widget.playUrl));
+      request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36';
+      
+      final response = await client.send(request);
+      
+      if (response.statusCode >= 400) {
+        client.close();
+        throw Exception('Server returned ${response.statusCode}');
+      }
       
       // The final URL after any redirects
       final finalUrl = response.request?.url.toString() ?? widget.playUrl;
+      
+      // Close the client immediately so we don't download the live stream in Dart
+      client.close();
 
       // 2. Initialize VLC with the final direct URL
       _vlcViewController = VlcPlayerController.network(
