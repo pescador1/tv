@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:http/http.dart' as http;
 import '../constants.dart';
 
 class PlayerScreen extends StatefulWidget {
@@ -19,27 +20,54 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   late VlcPlayerController _vlcViewController;
   bool _isPlaying = true;
+  bool _isInitializing = true;
+  String? _errorMsg;
 
   @override
   void initState() {
     super.initState();
-    _vlcViewController = VlcPlayerController.network(
-      widget.playUrl,
-      hwAcc: HwAcc.full,
-      autoPlay: true,
-      options: VlcPlayerOptions(
-        advanced: VlcAdvancedOptions([
-          VlcAdvancedOptions.networkCaching(2000),
-        ]),
-        http: VlcHttpOptions([
-          VlcHttpOptions.httpReconnect(true),
-        ]),
-        extras: [
-          '--http-user-agent=Mozilla/5.0 (Linux; Android 12; Pixel 6 Build/SQ3A.220705.004) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.97 Mobile Safari/537.36',
-          '--http-referrer=https://app.hr-tech.site/'
-        ],
-      ),
-    );
+    _initializePlayer();
+  }
+
+  Future<void> _initializePlayer() async {
+    try {
+      // 1. We resolve the redirect URL manually because VLC sometimes fails with HTTP 302 redirects
+      final response = await http.Request('GET', Uri.parse(widget.playUrl)).send();
+      
+      // The final URL after any redirects
+      final finalUrl = response.request?.url.toString() ?? widget.playUrl;
+
+      // 2. Initialize VLC with the final direct URL
+      _vlcViewController = VlcPlayerController.network(
+        finalUrl,
+        hwAcc: HwAcc.full,
+        autoPlay: true,
+        options: VlcPlayerOptions(
+          advanced: VlcAdvancedOptions([
+            VlcAdvancedOptions.networkCaching(2000),
+          ]),
+          http: VlcHttpOptions([
+            VlcHttpOptions.httpReconnect(true),
+          ]),
+          extras: [
+            '--http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+          ],
+        ),
+      );
+
+      if (mounted) {
+        setState(() {
+          _isInitializing = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isInitializing = false;
+          _errorMsg = e.toString();
+        });
+      }
+    }
   }
 
   @override
@@ -61,11 +89,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
       ),
       extendBodyBehindAppBar: true,
       body: Center(
-        child: VlcPlayer(
-          controller: _vlcViewController,
-          aspectRatio: 16 / 9,
-          placeholder: const Center(child: CircularProgressIndicator(color: Constants.primaryColor)),
-        ),
+        child: _isInitializing
+            ? const CircularProgressIndicator(color: Constants.primaryColor)
+            : _errorMsg != null
+                ? Text('Error loading channel: $_errorMsg', style: const TextStyle(color: Colors.redAccent))
+                : VlcPlayer(
+                    controller: _vlcViewController,
+                    aspectRatio: 16 / 9,
+                    placeholder: const Center(child: CircularProgressIndicator(color: Constants.primaryColor)),
+                  ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Constants.primaryColor,
