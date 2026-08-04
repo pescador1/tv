@@ -34,6 +34,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
         http: VlcHttpOptions([
           VlcHttpOptions.httpReconnect(true),
         ]),
+        extras: [
+          '--http-user-agent=Mozilla/5.0 (Linux; Android 12; Pixel 6 Build/SQ3A.220705.004) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.97 Mobile Safari/537.36',
+          '--http-referrer=https://app.hr-tech.site/'
+        ],
       ),
     );
   }
