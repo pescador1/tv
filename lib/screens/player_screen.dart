@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_vlc_player/flutter_vlc_player.dart';
-import 'package:http/http.dart' as http;
+import 'package:webview_flutter/webview_flutter.dart';
 import '../constants.dart';
 
 class PlayerScreen extends StatefulWidget {
@@ -18,75 +17,28 @@ class PlayerScreen extends StatefulWidget {
 }
 
 class _PlayerScreenState extends State<PlayerScreen> {
-  late VlcPlayerController _vlcViewController;
-  bool _isPlaying = true;
-  bool _isInitializing = true;
-  String? _errorMsg;
+  late final WebViewController _controller;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _initializePlayer();
-  }
-
-  Future<void> _initializePlayer() async {
-    try {
-      // 1. We resolve the redirect URL manually because VLC sometimes fails with HTTP 302 redirects
-      final client = http.Client();
-      final request = http.Request('GET', Uri.parse(widget.playUrl));
-      request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36';
-      
-      final response = await client.send(request);
-      
-      if (response.statusCode >= 400) {
-        client.close();
-        throw Exception('Server returned ${response.statusCode}');
-      }
-      
-      // The final URL after any redirects
-      final finalUrl = response.request?.url.toString() ?? widget.playUrl;
-      
-      // Close the client immediately so we don't download the live stream in Dart
-      client.close();
-
-      // 2. Initialize VLC with the final direct URL
-      _vlcViewController = VlcPlayerController.network(
-        finalUrl,
-        hwAcc: HwAcc.full,
-        autoPlay: true,
-        options: VlcPlayerOptions(
-          advanced: VlcAdvancedOptions([
-            VlcAdvancedOptions.networkCaching(2000),
-          ]),
-          http: VlcHttpOptions([
-            VlcHttpOptions.httpReconnect(true),
-          ]),
-          extras: [
-            '--http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-          ],
+    
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.black)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String url) {
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+          },
         ),
-      );
-
-      if (mounted) {
-        setState(() {
-          _isInitializing = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isInitializing = false;
-          _errorMsg = e.toString();
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() async {
-    super.dispose();
-    await _vlcViewController.stopRendererScanning();
-    await _vlcViewController.dispose();
+      )
+      ..loadRequest(Uri.parse(widget.playUrl));
   }
 
   @override
@@ -97,33 +49,32 @@ class _PlayerScreenState extends State<PlayerScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(widget.channelName, style: const TextStyle(color: Colors.white)),
+        title: Text(
+          widget.channelName, 
+          style: const TextStyle(
+            color: Colors.white, 
+            shadows: [Shadow(color: Colors.black, blurRadius: 4)]
+          )
+        ),
       ),
       extendBodyBehindAppBar: true,
-      body: Center(
-        child: _isInitializing
-            ? const CircularProgressIndicator(color: Constants.primaryColor)
-            : _errorMsg != null
-                ? Text('Error loading channel: $_errorMsg', style: const TextStyle(color: Colors.redAccent))
-                : VlcPlayer(
-                    controller: _vlcViewController,
-                    aspectRatio: 16 / 9,
-                    placeholder: const Center(child: CircularProgressIndicator(color: Constants.primaryColor)),
-                  ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Constants.primaryColor,
-        onPressed: () {
-          if (_isPlaying) {
-            _vlcViewController.pause();
-          } else {
-            _vlcViewController.play();
-          }
-          setState(() {
-            _isPlaying = !_isPlaying;
-          });
-        },
-        child: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Stack(
+          children: [
+            Center(
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: WebViewWidget(controller: _controller),
+              ),
+            ),
+            if (_isLoading)
+              const Center(
+                child: CircularProgressIndicator(color: Constants.primaryColor),
+              ),
+          ],
+        ),
       ),
     );
   }
