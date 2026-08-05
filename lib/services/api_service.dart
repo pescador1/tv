@@ -6,6 +6,15 @@ import 'dart:io';
 import '../constants.dart';
 
 class ApiService {
+  static String appName = 'HR TV';
+  static String logoUrl = '';
+
+  static Future<void> initSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    appName = prefs.getString('panel_name') ?? 'HR TV';
+    logoUrl = prefs.getString('logo_url') ?? '';
+  }
+
   static Future<String> getDeviceId() async {
     final prefs = await SharedPreferences.getInstance();
     String? deviceId = prefs.getString('device_id');
@@ -21,7 +30,6 @@ class ApiService {
       } else {
         deviceId = 'dev_${DateTime.now().millisecondsSinceEpoch}';
       }
-      // Ensure we have a string
       deviceId ??= 'dev_${DateTime.now().millisecondsSinceEpoch}';
       await prefs.setString('device_id', deviceId);
     }
@@ -36,7 +44,19 @@ class ApiService {
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final prefs = await SharedPreferences.getInstance();
+          if (data['panel_name'] != null && data['panel_name'].toString().isNotEmpty) {
+            appName = data['panel_name'];
+            await prefs.setString('panel_name', appName);
+          }
+          if (data['logo_url'] != null && data['logo_url'].toString().isNotEmpty) {
+            logoUrl = data['logo_url'];
+            await prefs.setString('logo_url', logoUrl);
+          }
+        }
+        return data;
       }
     } catch (e) {
       print('Login error: $e');
@@ -50,7 +70,16 @@ class ApiService {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['success']) {
+        
+        // Auto-update logo and appName if returned by API
+        if (data['panel_name'] != null && data['panel_name'].toString().isNotEmpty) {
+          appName = data['panel_name'];
+        }
+        if (data['logo_url'] != null && data['logo_url'].toString().isNotEmpty) {
+          logoUrl = data['logo_url'];
+        }
+
+        if (data['success'] == true) {
           return data['data'];
         }
       }
@@ -66,7 +95,7 @@ class ApiService {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['success']) {
+        if (data['success'] == true) {
           return data['data'];
         }
       }
