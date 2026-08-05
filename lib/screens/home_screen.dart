@@ -110,9 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Aligned Settings List Items
               _buildAlignedInfoTile(
-                icon: Icons.tv,
-                label: 'App Name:',
-                value: ApiService.appName,
+                icon: Icons.calendar_today,
+                label: 'Expiration (تاريخ انتهاء الاشتراك):',
+                value: 'Unlimited / غير محدود',
+                valueColor: Colors.amberAccent,
               ),
               const SizedBox(height: 10),
               _buildAlignedInfoTile(
@@ -123,15 +124,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 10),
               _buildAlignedInfoTile(
                 icon: Icons.verified_user,
-                label: 'Status:',
+                label: 'Status (الحالة):',
                 value: 'Active (نشط)',
                 valueColor: Colors.greenAccent,
-              ),
-              const SizedBox(height: 10),
-              _buildAlignedInfoTile(
-                icon: Icons.format_list_bulleted,
-                label: 'Total Channels:',
-                value: '$_totalChannels Channels',
               ),
 
               const SizedBox(height: 24),
