@@ -65,17 +65,16 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => Dialog(
         backgroundColor: Constants.cardColor,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: Constants.cardBorderColor, width: 1.5),
         ),
         child: Container(
-          width: 480,
-          padding: const EdgeInsets.all(24),
+          width: 460,
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
               Row(
@@ -93,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Settings & Account Info',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -104,37 +103,37 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               const Divider(color: Constants.cardBorderColor, height: 1),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              // Aligned Settings List Items
-              _buildAlignedInfoTile(
-                icon: Icons.calendar_today,
-                label: 'Expiration (تاريخ انتهاء الاشتراك):',
-                value: 'Unlimited / غير محدود',
+              // Aligned List Items
+              _buildInfoTile(
+                icon: Icons.calendar_month,
+                label: 'Expiration:',
+                value: ApiService.expDate,
                 valueColor: Colors.amberAccent,
               ),
               const SizedBox(height: 10),
-              _buildAlignedInfoTile(
+              _buildInfoTile(
                 icon: Icons.important_devices,
                 label: 'Device ID / MAC:',
                 value: _deviceId,
               ),
               const SizedBox(height: 10),
-              _buildAlignedInfoTile(
-                icon: Icons.verified_user,
-                label: 'Status (الحالة):',
-                value: 'Active (نشط)',
+              _buildInfoTile(
+                icon: Icons.person,
+                label: 'User:',
+                value: widget.code,
                 valueColor: Colors.greenAccent,
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               
-              // Action Button
+              // Action Button (Properly padded & aligned inside dialog)
               SizedBox(
                 width: double.infinity,
-                height: 44,
+                height: 42,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Constants.primaryColor,
@@ -159,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAlignedInfoTile({
+  Widget _buildInfoTile({
     required IconData icon,
     required String label,
     required String value,
@@ -185,12 +184,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              color: valueColor ?? Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
+          Flexible(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: valueColor ?? Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
             ),
           ),
         ],
