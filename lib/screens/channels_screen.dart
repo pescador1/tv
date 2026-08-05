@@ -74,14 +74,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     final existsIndex = _favorites.indexWhere((c) => c['id'].toString() == chId);
 
     if (existsIndex >= 0) {
-      // Remove
       _favorites.removeAt(existsIndex);
       favList.removeWhere((e) {
         final decoded = json.decode(e);
         return decoded['id'].toString() == chId;
       });
     } else {
-      // Add
       _favorites.add(channel);
       favList.add(json.encode(channel));
     }
@@ -149,6 +147,20 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
         ),
       );
     }
+  }
+
+  String _formatLogoUrl(String? rawUrl) {
+    if (rawUrl == null) return '';
+    String url = rawUrl.trim();
+    if (url.isEmpty) return '';
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      if (url.startsWith('/')) {
+        return 'http://app.hr-tech.site$url';
+      } else {
+        return 'http://app.hr-tech.site/app/$url';
+      }
+    }
+    return url;
   }
 
   @override
@@ -397,7 +409,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
   }
 
   Widget _buildChannelItem(dynamic channel, bool isSelected) {
-    final logoUrl = channel['logo_url'] ?? '';
+    final logoUrl = _formatLogoUrl(channel['logo_url'] ?? channel['stream_icon']);
     final isFav = _isFavorite(channel);
 
     return Material(
@@ -427,13 +439,16 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: logoUrl.isNotEmpty
-                    ? Image.network(
-                        logoUrl,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.tv,
-                          color: Constants.textMuted,
-                          size: 20,
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Image.network(
+                          logoUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.tv,
+                            color: Constants.textMuted,
+                            size: 20,
+                          ),
                         ),
                       )
                     : const Icon(Icons.tv, color: Constants.textMuted, size: 20),
