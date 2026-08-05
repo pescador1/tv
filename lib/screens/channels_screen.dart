@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../constants.dart';
 import '../services/api_service.dart';
+import 'player_screen.dart';
 
 class ChannelsScreen extends StatefulWidget {
   final String code;
@@ -77,6 +78,22 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     }
   }
 
+  void _openFullScreen(dynamic channel) {
+    final playUrl = channel['play_url'] ?? '';
+    final name = channel['name'] ?? 'Channel';
+    if (playUrl.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PlayerScreen(
+            channelName: name,
+            playUrl: playUrl,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredChannels = _channels.where((ch) {
@@ -109,7 +126,6 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                     ),
                   ),
                   const Spacer(),
-                  // Favorite / Search Icons
                   IconButton(
                     icon: const Icon(Icons.favorite_border, color: Constants.textMuted),
                     onPressed: () {},
@@ -122,7 +138,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             Expanded(
               child: Row(
                 children: [
-                  // Left Side: Channel List (350px)
+                  // Left Side: Channel List (340px)
                   Container(
                     width: 340,
                     decoration: const BoxDecoration(
@@ -183,7 +199,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                     ),
                   ),
 
-                  // Right Side: Embedded Video Player + EPG Info
+                  // Right Side: Embedded Video Player
                   Expanded(
                     child: Container(
                       color: Colors.black,
@@ -194,65 +210,92 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                 style: TextStyle(color: Constants.textMuted),
                               ),
                             )
-                          : Stack(
-                              children: [
-                                // Video Player Widget
-                                Center(
-                                  child: AspectRatio(
-                                    aspectRatio: 16 / 9,
-                                    child: WebViewWidget(controller: _webViewController),
-                                  ),
-                                ),
-
-                                // Video Loading Indicator Overlay
-                                if (_isVideoLoading)
-                                  Container(
-                                    color: Colors.black54,
-                                    child: const Center(
-                                      child: CircularProgressIndicator(
-                                        color: Constants.primaryColor,
-                                      ),
+                          : GestureDetector(
+                              onDoubleTap: () => _openFullScreen(_selectedChannel),
+                              child: Stack(
+                                children: [
+                                  // Video Player Widget
+                                  Center(
+                                    child: AspectRatio(
+                                      aspectRatio: 16 / 9,
+                                      child: WebViewWidget(controller: _webViewController),
                                     ),
                                   ),
 
-                                // Channel Overlay Title (Top Left of Player)
-                                Positioned(
-                                  top: 16,
-                                  left: 16,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.7),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.1),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.circle,
-                                          color: Colors.redAccent,
-                                          size: 10,
+                                  // Video Loading Indicator Overlay
+                                  if (_isVideoLoading)
+                                    Container(
+                                      color: Colors.black54,
+                                      child: const Center(
+                                        child: CircularProgressIndicator(
+                                          color: Constants.primaryColor,
                                         ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          _selectedChannel['name'] ?? 'Channel',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
+                                      ),
+                                    ),
+
+                                  // Channel Title Overlay (Top Left)
+                                  Positioned(
+                                    top: 16,
+                                    left: 16,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.7),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.1),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.circle,
+                                            color: Colors.redAccent,
+                                            size: 10,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            _selectedChannel['name'] ?? 'Channel',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Fullscreen Button Overlay (Top Right)
+                                  Positioned(
+                                    top: 16,
+                                    right: 16,
+                                    child: InkWell(
+                                      onTap: () => _openFullScreen(_selectedChannel),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.7),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.1),
                                           ),
                                         ),
-                                      ],
+                                        child: const Icon(
+                                          Icons.fullscreen,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                     ),
                   ),
@@ -272,6 +315,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _playChannel(channel),
+        onDoubleTap: () => _openFullScreen(channel),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
@@ -319,10 +363,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                 ),
               ),
               if (isSelected)
-                const Icon(
-                  Icons.play_circle_fill,
-                  color: Constants.primaryColor,
-                  size: 18,
+                IconButton(
+                  icon: const Icon(
+                    Icons.fullscreen,
+                    color: Constants.primaryColor,
+                    size: 22,
+                  ),
+                  onPressed: () => _openFullScreen(channel),
                 ),
             ],
           ),
