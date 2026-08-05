@@ -15,20 +15,24 @@ class CategoriesScreen extends StatefulWidget {
 class _CategoriesScreenState extends State<CategoriesScreen> {
   bool _isLoading = true;
   List<dynamic> _categories = [];
+  List<dynamic> _countries = [];
+  int _selectedTab = 0; // 0 for Categories (أصناف), 1 for Countries (دول)
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _fetchCategories();
+    _fetchData();
   }
 
-  Future<void> _fetchCategories() async {
+  Future<void> _fetchData() async {
     setState(() => _isLoading = true);
     final cats = await ApiService.getCategories(widget.code);
+    final countries = await ApiService.getCountries(widget.code);
     if (mounted) {
       setState(() {
         _categories = cats;
+        _countries = countries;
         _isLoading = false;
       });
     }
@@ -36,8 +40,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredCategories = _categories.where((cat) {
-      final name = (cat['name'] ?? '').toString().toLowerCase();
+    final currentList = _selectedTab == 0 ? _categories : _countries;
+    final currentType = _selectedTab == 0 ? 'category' : 'country';
+
+    final filteredList = currentList.where((item) {
+      final name = (item['name'] ?? '').toString().toLowerCase();
       return name.contains(_searchQuery.toLowerCase());
     }).toList();
 
@@ -48,7 +55,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           children: [
             // Top Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
               child: Row(
                 children: [
                   IconButton(
@@ -56,27 +63,38 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 8),
+                  
+                  // Toggle Switch (Categories / Countries)
                   Container(
-                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Constants.primaryColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
+                      color: Constants.cardColor,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Constants.cardBorderColor),
                     ),
-                    child: const Icon(Icons.live_tv, color: Constants.primaryColor, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'IPTV Xtream Code Player',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildTabButton(
+                          title: 'Categories (أصناف)',
+                          icon: Icons.category,
+                          isSelected: _selectedTab == 0,
+                          onTap: () => setState(() => _selectedTab = 0),
+                        ),
+                        _buildTabButton(
+                          title: 'Countries (دول)',
+                          icon: Icons.public,
+                          isSelected: _selectedTab == 1,
+                          onTap: () => setState(() => _selectedTab = 1),
+                        ),
+                      ],
                     ),
                   ),
+                  
                   const Spacer(),
+                  
                   // Search Box
                   Container(
-                    width: 250,
+                    width: 230,
                     height: 40,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
@@ -85,11 +103,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       border: Border.all(color: Constants.cardBorderColor),
                     ),
                     child: TextField(
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
                       onChanged: (val) => setState(() => _searchQuery = val),
                       decoration: const InputDecoration(
-                        hintText: 'Search Category...',
-                        hintStyle: TextStyle(color: Constants.textMuted, fontSize: 13),
+                        hintText: 'Search...',
+                        hintStyle: TextStyle(color: Constants.textMuted, fontSize: 12),
                         border: InputBorder.none,
                         icon: Icon(Icons.search, color: Constants.textMuted, size: 18),
                       ),
@@ -103,25 +121,25 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: Constants.primaryColor))
-                  : filteredCategories.isEmpty
+                  : filteredList.isEmpty
                       ? const Center(
                           child: Text(
-                            'No Categories Found',
+                            'No items found',
                             style: TextStyle(color: Constants.textMuted, fontSize: 16),
                           ),
                         )
                       : GridView.builder(
                           padding: const EdgeInsets.all(20),
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3, // 3 items per row for TV layout
+                            crossAxisCount: 3,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
-                            childAspectRatio: 3.2, // Wide landscape card like in video
+                            childAspectRatio: 3.2,
                           ),
-                          itemCount: filteredCategories.length,
+                          itemCount: filteredList.length,
                           itemBuilder: (context, index) {
-                            final cat = filteredCategories[index];
-                            return _buildCategoryCard(cat);
+                            final item = filteredList[index];
+                            return _buildCard(item, currentType);
                           },
                         ),
             ),
@@ -131,9 +149,46 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _buildCategoryCard(dynamic category) {
-    final name = category['name'] ?? 'Unknown';
-    final count = category['channels_count'] ?? 0;
+  Widget _buildTabButton({
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Constants.primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? Colors.white : Constants.textMuted,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Constants.textMuted,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(dynamic item, String type) {
+    final name = item['name'] ?? 'Unknown';
+    final count = item['channels_count'] ?? 0;
 
     return Material(
       color: Colors.transparent,
@@ -144,8 +199,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             MaterialPageRoute(
               builder: (_) => ChannelsScreen(
                 code: widget.code,
-                type: 'category',
-                id: int.parse(category['id'].toString()),
+                type: type,
+                id: int.parse(item['id'].toString()),
                 title: name,
               ),
             ),
@@ -174,8 +229,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   color: Colors.white.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
-                  Icons.connected_tv,
+                child: Icon(
+                  type == 'category' ? Icons.connected_tv : Icons.public,
                   color: Constants.primaryColor,
                   size: 22,
                 ),
