@@ -4,6 +4,7 @@ import '../constants.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
 import 'categories_screen.dart';
+import 'channels_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String code;
@@ -16,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   int _totalChannels = 0;
+  int _favCount = 0;
   String _deviceId = 'Loading...';
 
   @override
@@ -29,6 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
     await ApiService.initSettings();
     final devId = await ApiService.getDeviceId();
     final cats = await ApiService.getCategories(widget.code);
+    
+    final prefs = await SharedPreferences.getInstance();
+    final favList = prefs.getStringList('favorite_channels_list') ?? [];
+
     int count = 0;
     for (var c in cats) {
       count += (c['channels_count'] ?? 0) as int;
@@ -37,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _deviceId = devId;
         _totalChannels = count;
+        _favCount = favList.length;
         _isLoading = false;
       });
     }
@@ -166,12 +173,11 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             children: [
-              // Top Bar (Header with Dynamic Logo & App Name)
+              // Top Bar
               Row(
                 children: [
                   Row(
                     children: [
-                      // Dynamic Logo Image or Fallback Icon
                       if (ApiService.logoUrl.isNotEmpty)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
@@ -187,7 +193,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildFallbackLogoIcon(),
                       
                       const SizedBox(width: 12),
-                      // Dynamic App / Panel Name
                       Text(
                         ApiService.appName,
                         style: const TextStyle(
@@ -199,7 +204,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const Spacer(),
-                  // Date & Info
                   Text(
                     nowStr,
                     style: const TextStyle(
@@ -224,40 +228,23 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Row(
                   children: [
+                    // LIVE TV Card
                     Expanded(
                       flex: 2,
                       child: _buildLiveTvCard(),
                     ),
                     const SizedBox(width: 24),
+
+                    // Favourites Card Only
                     Expanded(
                       flex: 1,
-                      child: Column(
-                        children: [
-                          _buildActionTile(
-                            icon: Icons.history,
-                            title: 'Catch up',
-                            onTap: () {},
-                          ),
-                          const SizedBox(height: 12),
-                          _buildActionTile(
-                            icon: Icons.favorite,
-                            title: 'Favourites',
-                            onTap: () {},
-                          ),
-                          const SizedBox(height: 12),
-                          _buildActionTile(
-                            icon: Icons.qr_code,
-                            title: 'IPTV Codes',
-                            onTap: () {},
-                          ),
-                        ],
-                      ),
+                      child: _buildFavoritesCard(),
                     ),
                   ],
                 ),
               ),
 
-              // Footer Note with Dynamic App Name
+              // Footer Note
               Padding(
                 padding: const EdgeInsets.only(top: 12.0),
                 child: Text(
@@ -378,40 +365,80 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildActionTile({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Constants.cardColor,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Constants.cardBorderColor),
+  Widget _buildFavoritesCard() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChannelsScreen(
+                code: widget.code,
+                type: 'favorites',
+                id: 0,
+                title: 'Favourites (المفضلة)',
+              ),
             ),
-            child: Row(
-              children: [
-                Icon(icon, color: Constants.textMuted, size: 22),
-                const SizedBox(width: 14),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+          );
+          _fetchStats();
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Constants.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Constants.cardBorderColor),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -10,
+                bottom: -10,
+                child: Icon(
+                  Icons.favorite,
+                  size: 140,
+                  color: Colors.white.withOpacity(0.02),
                 ),
-                const Spacer(),
-                const Icon(Icons.arrow_forward_ios, color: Constants.textMuted, size: 14),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.favorite_rounded,
+                        size: 40,
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Favourites',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '$_favCount Saved Channels',
+                      style: const TextStyle(
+                        color: Constants.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
