@@ -344,54 +344,31 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                     ),
                                   ),
 
-                                  // Action Overlay Buttons (Top Right: Favorite & Fullscreen)
+                                  // Action Overlay Buttons (Top Right: Favorite Only)
                                   Positioned(
                                     top: 16,
                                     right: 16,
-                                    child: Row(
-                                      children: [
-                                        InkWell(
-                                          onTap: () => _toggleFavorite(_selectedChannel),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(0.7),
-                                              borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(
-                                                color: Colors.white.withOpacity(0.1),
-                                              ),
-                                            ),
-                                            child: Icon(
-                                              _isFavorite(_selectedChannel)
-                                                  ? Icons.favorite
-                                                  : Icons.favorite_border,
-                                              color: _isFavorite(_selectedChannel)
-                                                  ? Colors.redAccent
-                                                  : Colors.white,
-                                              size: 20,
-                                            ),
+                                    child: InkWell(
+                                      onTap: () => _toggleFavorite(_selectedChannel),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.7),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.1),
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
-                                        InkWell(
-                                          onTap: () => _openFullScreen(_selectedChannel),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(0.7),
-                                              borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(
-                                                color: Colors.white.withOpacity(0.1),
-                                              ),
-                                            ),
-                                            child: const Icon(
-                                              Icons.fullscreen,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                          ),
+                                        child: Icon(
+                                          _isFavorite(_selectedChannel)
+                                              ? Icons.favorite
+                                              : Icons.favorite_border,
+                                          color: _isFavorite(_selectedChannel)
+                                              ? Colors.redAccent
+                                              : Colors.white,
+                                          size: 20,
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ],
