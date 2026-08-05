@@ -26,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchStats() async {
     setState(() => _isLoading = true);
+    await ApiService.initSettings();
     final devId = await ApiService.getDeviceId();
     final cats = await ApiService.getCategories(widget.code);
     int count = 0;
@@ -65,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Dialog Header
               Row(
                 children: [
                   const Icon(Icons.settings, color: Constants.primaryColor, size: 24),
@@ -87,7 +87,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const Divider(color: Constants.cardBorderColor, height: 24),
 
-              // Account Details List
+              _buildInfoRow('App Name (اسم اللوحة):', ApiService.appName, Icons.title),
+              const SizedBox(height: 12),
               _buildInfoRow('Access Code (رمز الدخول):', widget.code, Icons.vpn_key),
               const SizedBox(height: 12),
               _buildInfoRow('Device ID / MAC:', _deviceId, Icons.important_devices),
@@ -95,8 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildInfoRow('Status (الحالة):', 'Active (نشط)', Icons.verified, valueColor: Colors.greenAccent),
               const SizedBox(height: 12),
               _buildInfoRow('Total Channels (القنوات):', '$_totalChannels Channels', Icons.tv),
-              const SizedBox(height: 12),
-              _buildInfoRow('Server:', 'HR TV Server', Icons.dns),
 
               const SizedBox(height: 24),
               SizedBox(
@@ -167,25 +166,31 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             children: [
-              // Top Bar (Header)
+              // Top Bar (Header with Dynamic Logo & App Name)
               Row(
                 children: [
-                  // App Branding
                   Row(
                     children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: Constants.primaryColor,
+                      // Dynamic Logo Image or Fallback Icon
+                      if (ApiService.logoUrl.isNotEmpty)
+                        ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.play_arrow, color: Colors.white, size: 24),
-                      ),
+                          child: Image.network(
+                            ApiService.logoUrl,
+                            height: 36,
+                            width: 36,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _buildFallbackLogoIcon(),
+                          ),
+                        )
+                      else
+                        _buildFallbackLogoIcon(),
+                      
                       const SizedBox(width: 12),
-                      const Text(
-                        'IPTV Xtream Code Player',
-                        style: TextStyle(
+                      // Dynamic App / Panel Name
+                      Text(
+                        ApiService.appName,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -219,14 +224,11 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    // Main Big Card: LIVE TV (Left Side - Dominant)
                     Expanded(
                       flex: 2,
                       child: _buildLiveTvCard(),
                     ),
                     const SizedBox(width: 24),
-
-                    // Secondary Action Menu (Right Side Vertical List)
                     Expanded(
                       flex: 1,
                       child: Column(
@@ -255,18 +257,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Footer Note
-              const Padding(
-                padding: EdgeInsets.only(top: 12.0),
+              // Footer Note with Dynamic App Name
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0),
                 child: Text(
-                  'HR TV - Powered by Xtream Engine',
-                  style: TextStyle(color: Constants.textMuted, fontSize: 11),
+                  '${ApiService.appName} - Powered by PESCADOR',
+                  style: const TextStyle(color: Constants.textMuted, fontSize: 11),
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFallbackLogoIcon() {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: Constants.primaryColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(Icons.play_arrow, color: Colors.white, size: 24),
     );
   }
 
