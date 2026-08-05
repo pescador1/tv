@@ -65,18 +65,30 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => Dialog(
         backgroundColor: Constants.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Constants.cardBorderColor, width: 1.5),
+        ),
         child: Container(
-          width: 450,
+          width: 480,
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               Row(
                 children: [
-                  const Icon(Icons.settings, color: Constants.primaryColor, size: 24),
-                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Constants.primaryColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.settings, color: Constants.primaryColor, size: 22),
+                  ),
+                  const SizedBox(width: 12),
                   const Text(
                     'Settings & Account Info',
                     style: TextStyle(
@@ -92,30 +104,57 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              const Divider(color: Constants.cardBorderColor, height: 24),
+              const SizedBox(height: 16),
+              const Divider(color: Constants.cardBorderColor, height: 1),
+              const SizedBox(height: 20),
 
-              _buildInfoRow('App Name (اسم اللوحة):', ApiService.appName, Icons.title),
-              const SizedBox(height: 12),
-              _buildInfoRow('Access Code (رمز الدخول):', widget.code, Icons.vpn_key),
-              const SizedBox(height: 12),
-              _buildInfoRow('Device ID / MAC:', _deviceId, Icons.important_devices),
-              const SizedBox(height: 12),
-              _buildInfoRow('Status (الحالة):', 'Active (نشط)', Icons.verified, valueColor: Colors.greenAccent),
-              const SizedBox(height: 12),
-              _buildInfoRow('Total Channels (القنوات):', '$_totalChannels Channels', Icons.tv),
+              // Aligned Settings List Items
+              _buildAlignedInfoTile(
+                icon: Icons.tv,
+                label: 'App Name:',
+                value: ApiService.appName,
+              ),
+              const SizedBox(height: 10),
+              _buildAlignedInfoTile(
+                icon: Icons.important_devices,
+                label: 'Device ID / MAC:',
+                value: _deviceId,
+              ),
+              const SizedBox(height: 10),
+              _buildAlignedInfoTile(
+                icon: Icons.verified_user,
+                label: 'Status:',
+                value: 'Active (نشط)',
+                valueColor: Colors.greenAccent,
+              ),
+              const SizedBox(height: 10),
+              _buildAlignedInfoTile(
+                icon: Icons.format_list_bulleted,
+                label: 'Total Channels:',
+                value: '$_totalChannels Channels',
+              ),
 
               const SizedBox(height: 24),
+              
+              // Action Button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
+                height: 44,
+                child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Constants.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
                   ),
-                  icon: const Icon(Icons.check, color: Colors.white),
-                  label: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -125,30 +164,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon, {Color? valueColor}) {
+  Widget _buildAlignedInfoTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color? valueColor,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Constants.bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Constants.cardBorderColor),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Constants.textMuted),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(color: Constants.textMuted, fontSize: 13),
+          Icon(icon, size: 18, color: Constants.primaryColor),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Constants.textMuted,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
+          const Spacer(),
           Text(
             value,
             style: TextStyle(
               color: valueColor ?? Colors.white,
-              fontWeight: FontWeight.bold,
               fontSize: 13,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
