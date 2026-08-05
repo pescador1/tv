@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   int _totalChannels = 0;
+  String _deviceId = 'Loading...';
 
   @override
   void initState() {
@@ -25,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchStats() async {
     setState(() => _isLoading = true);
+    final devId = await ApiService.getDeviceId();
     final cats = await ApiService.getCategories(widget.code);
     int count = 0;
     for (var c in cats) {
@@ -32,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (mounted) {
       setState(() {
+        _deviceId = devId;
         _totalChannels = count;
         _isLoading = false;
       });
@@ -47,6 +50,104 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
     }
+  }
+
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Constants.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 450,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Dialog Header
+              Row(
+                children: [
+                  const Icon(Icons.settings, color: Constants.primaryColor, size: 24),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Settings & Account Info',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Constants.textMuted, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const Divider(color: Constants.cardBorderColor, height: 24),
+
+              // Account Details List
+              _buildInfoRow('Access Code (رمز الدخول):', widget.code, Icons.vpn_key),
+              const SizedBox(height: 12),
+              _buildInfoRow('Device ID / MAC:', _deviceId, Icons.important_devices),
+              const SizedBox(height: 12),
+              _buildInfoRow('Status (الحالة):', 'Active (نشط)', Icons.verified, valueColor: Colors.greenAccent),
+              const SizedBox(height: 12),
+              _buildInfoRow('Total Channels (القنوات):', '$_totalChannels Channels', Icons.tv),
+              const SizedBox(height: 12),
+              _buildInfoRow('Server:', 'HR TV Server', Icons.dns),
+
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Constants.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.check, color: Colors.white),
+                  label: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, IconData icon, {Color? valueColor}) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Constants.bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Constants.cardBorderColor),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Constants.textMuted),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: Constants.textMuted, fontSize: 13),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor ?? Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -103,8 +204,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(width: 16),
                   IconButton(
-                    icon: const Icon(Icons.settings, color: Constants.textMuted),
-                    onPressed: () {},
+                    icon: const Icon(Icons.settings, color: Colors.white),
+                    onPressed: _showSettingsDialog,
                   ),
                   IconButton(
                     icon: const Icon(Icons.power_settings_new, color: Colors.redAccent),
@@ -201,7 +302,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Stack(
             children: [
-              // Background Glow Icon
               Positioned(
                 right: -20,
                 bottom: -20,
