@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import '../constants.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
@@ -52,7 +51,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final nowStr = DateFormat('MMM dd, yyyy - hh:mm a').format(DateTime.now());
+    final now = DateTime.now();
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final monthStr = months[now.month - 1];
+    final hour = now.hour % 12 == 0 ? 12 : now.hour % 12;
+    final amPm = now.hour >= 12 ? 'PM' : 'AM';
+    final minuteStr = now.minute.toString().padLeft(2, '0');
+    final nowStr = '$monthStr ${now.day}, ${now.year} - ${hour.toString().padLeft(2, '0')}:$minuteStr $amPm';
 
     return Scaffold(
       backgroundColor: Constants.bgColor,
