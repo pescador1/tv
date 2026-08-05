@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
 import '../services/api_service.dart';
 import 'player_screen.dart';
@@ -25,6 +27,7 @@ class ChannelsScreen extends StatefulWidget {
 class _ChannelsScreenState extends State<ChannelsScreen> {
   bool _isLoading = true;
   List<dynamic> _channels = [];
+  List<dynamic> _favorites = [];
   dynamic _selectedChannel;
   late final WebViewController _webViewController;
   bool _isVideoLoading = false;
@@ -34,7 +37,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
   void initState() {
     super.initState();
     _initWebView();
-    _fetchChannels();
+    _loadFavorites().then((_) => _fetchChannels());
   }
 
   void _initWebView() {
@@ -53,8 +56,62 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
       );
   }
 
+  Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favList = prefs.getStringList('favorite_channels_list') ?? [];
+    if (mounted) {
+      setState(() {
+        _favorites = favList.map((e) => json.decode(e)).toList();
+      });
+    }
+  }
+
+  Future<void> _toggleFavorite(dynamic channel) async {
+    final prefs = await SharedPreferences.getInstance();
+    final favList = prefs.getStringList('favorite_channels_list') ?? [];
+    
+    final chId = channel['id'].toString();
+    final existsIndex = _favorites.indexWhere((c) => c['id'].toString() == chId);
+
+    if (existsIndex >= 0) {
+      // Remove
+      _favorites.removeAt(existsIndex);
+      favList.removeWhere((e) {
+        final decoded = json.decode(e);
+        return decoded['id'].toString() == chId;
+      });
+    } else {
+      // Add
+      _favorites.add(channel);
+      favList.add(json.encode(channel));
+    }
+
+    await prefs.setStringList('favorite_channels_list', favList);
+    if (mounted) setState(() {});
+  }
+
+  bool _isFavorite(dynamic channel) {
+    if (channel == null) return false;
+    final chId = channel['id'].toString();
+    return _favorites.any((c) => c['id'].toString() == chId);
+  }
+
   Future<void> _fetchChannels() async {
     setState(() => _isLoading = true);
+
+    if (widget.type == 'favorites') {
+      if (mounted) {
+        setState(() {
+          _channels = List.from(_favorites);
+          _isLoading = false;
+          if (_channels.isNotEmpty) {
+            _playChannel(_channels[0]);
+          }
+        });
+      }
+      return;
+    }
+
     final channels = await ApiService.getChannels(widget.code, widget.type, widget.id);
     if (mounted) {
       setState(() {
@@ -126,10 +183,14 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                     ),
                   ),
                   const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.favorite_border, color: Constants.textMuted),
-                    onPressed: () {},
-                  ),
+                  if (_selectedChannel != null)
+                    IconButton(
+                      icon: Icon(
+                        _isFavorite(_selectedChannel) ? Icons.favorite : Icons.favorite_border,
+                        color: _isFavorite(_selectedChannel) ? Colors.redAccent : Constants.textMuted,
+                      ),
+                      onPressed: () => _toggleFavorite(_selectedChannel),
+                    ),
                 ],
               ),
             ),
@@ -271,27 +332,54 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                     ),
                                   ),
 
-                                  // Fullscreen Button Overlay (Top Right)
+                                  // Action Overlay Buttons (Top Right: Favorite & Fullscreen)
                                   Positioned(
                                     top: 16,
                                     right: 16,
-                                    child: InkWell(
-                                      onTap: () => _openFullScreen(_selectedChannel),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.7),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(
-                                            color: Colors.white.withOpacity(0.1),
+                                    child: Row(
+                                      children: [
+                                        InkWell(
+                                          onTap: () => _toggleFavorite(_selectedChannel),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.7),
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: Colors.white.withOpacity(0.1),
+                                              ),
+                                            ),
+                                            child: Icon(
+                                              _isFavorite(_selectedChannel)
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color: _isFavorite(_selectedChannel)
+                                                  ? Colors.redAccent
+                                                  : Colors.white,
+                                              size: 20,
+                                            ),
                                           ),
                                         ),
-                                        child: const Icon(
-                                          Icons.fullscreen,
-                                          color: Colors.white,
-                                          size: 20,
+                                        const SizedBox(width: 8),
+                                        InkWell(
+                                          onTap: () => _openFullScreen(_selectedChannel),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.7),
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: Colors.white.withOpacity(0.1),
+                                              ),
+                                            ),
+                                            child: const Icon(
+                                              Icons.fullscreen,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -310,6 +398,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
 
   Widget _buildChannelItem(dynamic channel, bool isSelected) {
     final logoUrl = channel['logo_url'] ?? '';
+    final isFav = _isFavorite(channel);
 
     return Material(
       color: Colors.transparent,
@@ -362,15 +451,14 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (isSelected)
-                IconButton(
-                  icon: const Icon(
-                    Icons.fullscreen,
-                    color: Constants.primaryColor,
-                    size: 22,
-                  ),
-                  onPressed: () => _openFullScreen(channel),
+              IconButton(
+                icon: Icon(
+                  isFav ? Icons.favorite : Icons.favorite_border,
+                  color: isFav ? Colors.redAccent : Constants.textMuted.withOpacity(0.4),
+                  size: 18,
                 ),
+                onPressed: () => _toggleFavorite(channel),
+              ),
             ],
           ),
         ),
