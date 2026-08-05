@@ -63,6 +63,35 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 8),
+
+                  // Dynamic App Logo & Name Header
+                  Row(
+                    children: [
+                      if (ApiService.logoUrl.isNotEmpty)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.network(
+                            ApiService.logoUrl,
+                            height: 28,
+                            width: 28,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _buildDefaultAppIcon(),
+                          ),
+                        )
+                      else
+                        _buildDefaultAppIcon(),
+                      const SizedBox(width: 10),
+                      Text(
+                        ApiService.appName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 20),
                   
                   // Toggle Switch (Categories / Countries)
                   Container(
@@ -94,7 +123,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   
                   // Search Box
                   Container(
-                    width: 230,
+                    width: 200,
                     height: 40,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
@@ -149,6 +178,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
+  Widget _buildDefaultAppIcon() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Constants.primaryColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: const Icon(Icons.live_tv, color: Constants.primaryColor, size: 18),
+    );
+  }
+
   Widget _buildTabButton({
     required String title,
     required IconData icon,
@@ -159,7 +199,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? Constants.primaryColor : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
@@ -168,16 +208,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           children: [
             Icon(
               icon,
-              size: 16,
+              size: 15,
               color: isSelected ? Colors.white : Constants.textMuted,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               title,
               style: TextStyle(
                 color: isSelected ? Colors.white : Constants.textMuted,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 13,
+                fontSize: 12,
               ),
             ),
           ],
