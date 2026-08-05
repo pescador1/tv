@@ -8,11 +8,13 @@ import '../constants.dart';
 class ApiService {
   static String appName = 'HR TV';
   static String logoUrl = '';
+  static String expDate = 'Unlimited';
 
   static Future<void> initSettings() async {
     final prefs = await SharedPreferences.getInstance();
     appName = prefs.getString('panel_name') ?? 'HR TV';
     logoUrl = prefs.getString('logo_url') ?? '';
+    expDate = prefs.getString('exp_date') ?? 'Unlimited';
   }
 
   static Future<String> getDeviceId() async {
@@ -55,6 +57,11 @@ class ApiService {
             logoUrl = data['logo_url'];
             await prefs.setString('logo_url', logoUrl);
           }
+          final exp = data['exp_date'] ?? data['expiration'] ?? data['expire_date'];
+          if (exp != null && exp.toString().isNotEmpty) {
+            expDate = exp.toString();
+            await prefs.setString('exp_date', expDate);
+          }
         }
         return data;
       }
@@ -71,12 +78,15 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         
-        // Auto-update logo and appName if returned by API
         if (data['panel_name'] != null && data['panel_name'].toString().isNotEmpty) {
           appName = data['panel_name'];
         }
         if (data['logo_url'] != null && data['logo_url'].toString().isNotEmpty) {
           logoUrl = data['logo_url'];
+        }
+        final exp = data['exp_date'] ?? data['expiration'] ?? data['expire_date'];
+        if (exp != null && exp.toString().isNotEmpty) {
+          expDate = exp.toString();
         }
 
         if (data['success'] == true) {
