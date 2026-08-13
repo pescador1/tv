@@ -76,12 +76,48 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Constants.bgColor,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+        child: Stack(
+          children: [
+            Positioned(
+              top: 10,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Constants.cardColor,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Constants.cardBorderColor),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: AppLanguage.languageNames.containsKey(AppLanguage.currentLanguage.value)
+                        ? AppLanguage.currentLanguage.value
+                        : 'en',
+                    dropdownColor: Constants.cardColor,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    icon: const Icon(Icons.language, color: Constants.primaryColor, size: 18),
+                    items: AppLanguage.languageNames.entries.map((entry) {
+                      return DropdownMenuItem<String>(
+                        value: entry.key,
+                        child: Text(entry.value),
+                      );
+                    }).toList(),
+                    onChanged: (newLang) async {
+                      if (newLang != null) {
+                        await AppLanguage.setLanguage(newLang);
+                        if (mounted) setState(() {});
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                 Container(
                   width: 100,
                   height: 100,
@@ -214,7 +250,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ),
-    );
+      ],
+    ),
+  ),
+);
   }
 }
