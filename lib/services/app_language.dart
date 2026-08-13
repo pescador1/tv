@@ -304,5 +304,80 @@ class AppLanguage {
       'add_fav': 'Zu Favoriten hinzufügen',
       'remove_fav': 'Aus Favoriten entfernen',
     },
+  static String translateName(String rawName) {
+    if (rawName.trim().isEmpty) return rawName;
+    final lang = currentLanguage.value;
+    final clean = rawName.trim();
+    if (lang == 'ar' && _arabicNames.containsKey(clean)) {
+      return _arabicNames[clean]!;
+    }
+    if (_nameTranslations.containsKey(clean)) {
+      return _nameTranslations[clean]?[lang] ?? _nameTranslations[clean]?['en'] ?? rawName;
+    }
+    final cleanLower = clean.toLowerCase();
+    for (var entry in _nameTranslations.entries) {
+      if (entry.key.toLowerCase() == cleanLower) {
+        return entry.value[lang] ?? entry.value['en'] ?? rawName;
+      }
+    }
+    return rawName;
+  }
+
+  static const Map<String, String> _arabicNames = {
+    'Maroc': 'المغرب',
+    'Égypte': 'مصر',
+    'Algérie': 'الجزائر',
+    'Tunisie': 'تونس',
+    'Arabie saoudite': 'السعودية',
+    'Émirats arabes unis': 'الإمارات',
+    'France': 'فرنسا',
+    'Espagne': 'إسبانيا',
+    'Allemagne': 'ألمانيا',
+    'Royaume-Uni': 'بريطانيا',
+    'États-Unis': 'أمريكا',
+    'Turquie': 'تركيا',
+    'Italie': 'إيطاليا',
+  };
+
+  static const Map<String, Map<String, String>> _nameTranslations = {
+    // Categories
+    'الرئيسية': {'en': 'Home', 'fr': 'Accueil', 'es': 'Inicio', 'de': 'Hauptseite', 'tr': 'Ana Sayfa'},
+    'رياضة': {'en': 'Sports', 'fr': 'Sports', 'es': 'Deportes', 'de': 'Sport', 'tr': 'Spor'},
+    'أفلام': {'en': 'Movies', 'fr': 'Films', 'es': 'Películas', 'de': 'Filme', 'tr': 'Filmler'},
+    'أطفال': {'en': 'Kids', 'fr': 'Enfants', 'es': 'Niños', 'de': 'Kinder', 'tr': 'Çocuk'},
+    'أخبار': {'en': 'News', 'fr': 'Actualités', 'es': 'Noticias', 'de': 'Nachrichten', 'tr': 'Haberler'},
+    'وثائقي': {'en': 'Documentary', 'fr': 'Documentaires', 'es': 'Documentales', 'de': 'Doku', 'tr': 'Belgesel'},
+    'موسيقى': {'en': 'Music', 'fr': 'Musique', 'es': 'Música', 'de': 'Musik', 'tr': 'Müzik'},
+    'مسلسلات': {'en': 'Series', 'fr': 'Séries', 'es': 'Series', 'de': 'Serien', 'tr': 'Diziler'},
+    'طبخ': {'en': 'Cooking', 'fr': 'Cuisine', 'es': 'Cocina', 'de': 'Kochen', 'tr': 'Yemek'},
+    'عام': {'en': 'General', 'fr': 'Général', 'es': 'General', 'de': 'Allgemein', 'tr': 'Genel'},
+    'كبار': {'en': 'Adults', 'fr': 'Adultes', 'es': 'Adultos', 'de': 'Erwachsene', 'tr': 'Yetişkin'},
+    'إسلاميات': {'en': 'Islamic', 'fr': 'Islamique', 'es': 'Islámico', 'de': 'Islamisch', 'tr': 'İslami'},
+    'ثقافة': {'en': 'Culture', 'fr': 'Culture', 'es': 'Cultura', 'de': 'Kultur', 'tr': 'Kültür'},
+    'منوعات': {'en': 'Variety', 'fr': 'Variétés', 'es': 'Variedad', 'de': 'Unterhaltung', 'tr': 'Çeşitli'},
+
+    // Countries
+    'Maroc': {'en': 'Morocco', 'fr': 'Maroc', 'es': 'Marruecos', 'ar': 'المغرب', 'de': 'Marokko', 'tr': 'Fas'},
+    'المغرب': {'en': 'Morocco', 'fr': 'Maroc', 'es': 'Marruecos', 'ar': 'المغرب', 'de': 'Marokko', 'tr': 'Fas'},
+    'Égypte': {'en': 'Egypt', 'fr': 'Égypte', 'es': 'Egipto', 'ar': 'مصر', 'de': 'Ägypten', 'tr': 'Mısır'},
+    'مصر': {'en': 'Egypt', 'fr': 'Égypte', 'es': 'Egipto', 'ar': 'مصر', 'de': 'Ägypten', 'tr': 'Mısır'},
+    'Algérie': {'en': 'Algeria', 'fr': 'Algérie', 'es': 'Argelia', 'ar': 'الجزائر', 'de': 'Algerien', 'tr': 'Cezayir'},
+    'الجزائر': {'en': 'Algeria', 'fr': 'Algérie', 'es': 'Argelia', 'ar': 'الجزائر', 'de': 'Algerien', 'tr': 'Cezayir'},
+    'Tunisie': {'en': 'Tunisia', 'fr': 'Tunisie', 'es': 'Túnez', 'ar': 'تونس', 'de': 'Tunesien', 'tr': 'Tunus'},
+    'تونس': {'en': 'Tunisia', 'fr': 'Tunisie', 'es': 'Túnez', 'ar': 'تونس', 'de': 'Tunesien', 'tr': 'Tunus'},
+    'Arabie saoudite': {'en': 'Saudi Arabia', 'fr': 'Arabie saoudite', 'es': 'Arabia Saudita', 'ar': 'السعودية'},
+    'السعودية': {'en': 'Saudi Arabia', 'fr': 'Arabie saoudite', 'es': 'Arabia Saudita', 'ar': 'السعودية'},
+    'Émirats arabes unis': {'en': 'UAE', 'fr': 'Émirats arabes unis', 'es': 'EAU', 'ar': 'الإمارات'},
+    'الإمارات': {'en': 'UAE', 'fr': 'Émirats arabes unis', 'es': 'EAU', 'ar': 'الإمارات'},
+    'France': {'en': 'France', 'fr': 'France', 'es': 'Francia', 'ar': 'فرنسا', 'de': 'Frankreich', 'tr': 'Fransa'},
+    'فرنسا': {'en': 'France', 'fr': 'France', 'es': 'Francia', 'ar': 'فرنسا', 'de': 'Frankreich', 'tr': 'Fransa'},
+    'Espagne': {'en': 'Spain', 'fr': 'Espagne', 'es': 'España', 'ar': 'إسبانيا', 'de': 'Spanien', 'tr': 'İspanya'},
+    'إسبانيا': {'en': 'Spain', 'fr': 'Espagne', 'es': 'España', 'ar': 'إسبانيا', 'de': 'Spanien', 'tr': 'İspanya'},
+    'Allemagne': {'en': 'Germany', 'fr': 'Allemagne', 'es': 'Alemania', 'ar': 'ألمانيا', 'de': 'Deutschland', 'tr': 'Almanya'},
+    'ألمانيا': {'en': 'Germany', 'fr': 'Allemagne', 'es': 'Alemania', 'ar': 'ألمانيا', 'de': 'Deutschland', 'tr': 'Almanya'},
+    'États-Unis': {'en': 'USA', 'fr': 'États-Unis', 'es': 'EE.UU.', 'ar': 'أمريكا'},
+    'أمريكا': {'en': 'USA', 'fr': 'États-Unis', 'es': 'EE.UU.', 'ar': 'أمريكا'},
+    'Turquie': {'en': 'Turkey', 'fr': 'Turquie', 'es': 'Turquía', 'ar': 'تركيا', 'de': 'Türkei', 'tr': 'Türkiye'},
+    'تركيا': {'en': 'Turkey', 'fr': 'Turquie', 'es': 'Turquía', 'ar': 'تركيا', 'de': 'Türkei', 'tr': 'Türkiye'},
   };
 }
