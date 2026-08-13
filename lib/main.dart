@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:io';
 import 'constants.dart';
 import 'screens/login_screen.dart';
+import 'services/app_language.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -20,6 +21,8 @@ void main() async {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+
+  await AppLanguage.init();
 
   try {
     await Firebase.initializeApp();
@@ -52,17 +55,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'HR TV',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Constants.primaryColor,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: Constants.bgColor,
-        fontFamily: 'Poppins', // Or whatever font the user prefers
-      ),
-      home: const LoginScreen(),
+    return ValueListenableBuilder<String>(
+      valueListenable: AppLanguage.currentLanguage,
+      builder: (context, lang, _) {
+        final isRtl = AppLanguage.isRtl;
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'HR TV',
+          theme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: Constants.primaryColor,
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: Constants.bgColor,
+            fontFamily: 'Tajawal',
+          ),
+          builder: (context, child) {
+            return Directionality(
+              textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+              child: child!,
+            );
+          },
+          home: const LoginScreen(),
+        );
+      },
     );
   }
 }
