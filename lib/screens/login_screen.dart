@@ -184,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 TextButton.icon(
                   onPressed: () async {
-                    final Uri url = Uri.parse('http://app.hr-tech.site/gene/');
+                    final Uri url = Uri.parse('http://generator.hr-tech.site/');
                     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
