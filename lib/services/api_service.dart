@@ -125,9 +125,21 @@ class ApiService {
           return data['channels'] as List<dynamic>;
         }
       }
-    } catch (e) {
-      print('Channels error: $e');
-    }
     return [];
+  }
+
+  static Future<Map<String, dynamic>> reportChannel(int channelId) async {
+    // Uses web API endpoint for reporting & trigger auto-healer
+    final url = Uri.parse('http://app.hr-tech.site/app/api.php?action=report&channel_id=$channelId');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      }
+    } catch (e) {
+      print('Report channel error: $e');
+    }
+    return {'success': false, 'message': 'Network Error'};
   }
 }
