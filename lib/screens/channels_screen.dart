@@ -157,6 +157,20 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
 
     final res = await ApiService.reportChannel(chId);
     if (mounted) {
+      final action = res['heal_action'] ?? res['action'] ?? '';
+      if (action == 'hidden') {
+        setState(() {
+          _channels.removeWhere((c) => c['id'].toString() == chId.toString());
+          if (_selectedChannel != null && _selectedChannel['id'].toString() == chId.toString()) {
+            if (_channels.isNotEmpty) {
+              _playChannel(_channels[0]);
+            } else {
+              _selectedChannel = null;
+            }
+          }
+        });
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(res['message'] ?? AppLanguage.tr('report_submitted')),
