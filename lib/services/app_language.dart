@@ -304,6 +304,8 @@ class AppLanguage {
       'add_fav': 'Zu Favoriten hinzufügen',
       'remove_fav': 'Aus Favoriten entfernen',
     },
+  };
+
   static String translateName(String rawName) {
     if (rawName.trim().isEmpty) return rawName;
     final lang = currentLanguage.value;
