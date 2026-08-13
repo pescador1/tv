@@ -172,9 +172,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     if (url.isEmpty) return '';
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       if (url.startsWith('/')) {
-        return 'http://app.hr-tech.site$url';
+        return '${Constants.baseUrl}$url';
       } else {
-        return 'http://app.hr-tech.site/app/$url';
+        return '${Constants.baseUrl}/$url';
       }
     }
     return url;
