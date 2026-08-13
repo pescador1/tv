@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants.dart';
 import '../services/api_service.dart';
+import '../services/app_language.dart';
 import 'channels_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -59,7 +60,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                    icon: Icon(
+                      AppLanguage.isRtl ? Icons.arrow_forward_ios : Icons.arrow_back_ios,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 8),
@@ -104,13 +109,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildTabButton(
-                          title: 'Categories (أصناف)',
+                          title: AppLanguage.tr('categories_tab'),
                           icon: Icons.category,
                           isSelected: _selectedTab == 0,
                           onTap: () => setState(() => _selectedTab = 0),
                         ),
                         _buildTabButton(
-                          title: 'Countries (دول)',
+                          title: AppLanguage.tr('countries_tab'),
                           icon: Icons.public,
                           isSelected: _selectedTab == 1,
                           onTap: () => setState(() => _selectedTab = 1),
@@ -134,11 +139,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     child: TextField(
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                       onChanged: (val) => setState(() => _searchQuery = val),
-                      decoration: const InputDecoration(
-                        hintText: 'Search...',
-                        hintStyle: TextStyle(color: Constants.textMuted, fontSize: 12),
+                      decoration: InputDecoration(
+                        hintText: AppLanguage.tr('search_hint'),
+                        hintStyle: const TextStyle(color: Constants.textMuted, fontSize: 12),
                         border: InputBorder.none,
-                        icon: Icon(Icons.search, color: Constants.textMuted, size: 18),
+                        icon: const Icon(Icons.search, color: Constants.textMuted, size: 18),
                       ),
                     ),
                   ),
@@ -151,10 +156,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: Constants.primaryColor))
                   : filteredList.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
-                            'No items found',
-                            style: TextStyle(color: Constants.textMuted, fontSize: 16),
+                            AppLanguage.tr('no_items_found'),
+                            style: const TextStyle(color: Constants.textMuted, fontSize: 16),
                           ),
                         )
                       : GridView.builder(
@@ -302,8 +307,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right,
+              Icon(
+                AppLanguage.isRtl ? Icons.chevron_left : Icons.chevron_right,
                 color: Constants.textMuted,
                 size: 18,
               ),
