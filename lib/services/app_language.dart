@@ -37,7 +37,7 @@ class AppLanguage {
         return code;
       }
     } catch (_) {}
-    return 'ar';
+    return 'en';
   }
 
   static Future<void> setLanguage(String langCode) async {
