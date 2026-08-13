@@ -125,6 +125,9 @@ class ApiService {
           return data['channels'] as List<dynamic>;
         }
       }
+    } catch (e) {
+      print('Channels error: $e');
+    }
     return [];
   }
 
