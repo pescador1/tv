@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
 import '../services/api_service.dart';
+import '../services/app_language.dart';
 import 'login_screen.dart';
 import 'categories_screen.dart';
 import 'channels_screen.dart';
@@ -61,99 +62,156 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showSettingsDialog() {
+    String currentLangVal = AppLanguage.currentLanguage.value;
+
     showDialog(
       context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: Constants.cardColor,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Constants.cardBorderColor, width: 1.5),
-        ),
-        child: Container(
-          width: 460,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Constants.primaryColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            backgroundColor: Constants.cardColor,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Constants.cardBorderColor, width: 1.5),
+            ),
+            child: Container(
+              width: 480,
+              padding: const EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Constants.primaryColor.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.settings, color: Constants.primaryColor, size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          AppLanguage.tr('settings_title'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Constants.textMuted, size: 20),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.settings, color: Constants.primaryColor, size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Settings & Account Info',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Constants.textMuted, size: 20),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const Divider(color: Constants.cardBorderColor, height: 1),
-              const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    const Divider(color: Constants.cardBorderColor, height: 1),
+                    const SizedBox(height: 16),
 
-              // Aligned List Items
-              _buildInfoTile(
-                icon: Icons.calendar_month,
-                label: 'Expiration:',
-                value: ApiService.expDate,
-                valueColor: Colors.amberAccent,
-              ),
-              const SizedBox(height: 10),
-              _buildInfoTile(
-                icon: Icons.important_devices,
-                label: 'Device ID / MAC:',
-                value: _deviceId,
-              ),
-              const SizedBox(height: 10),
-              _buildInfoTile(
-                icon: Icons.person,
-                label: 'User:',
-                value: widget.code,
-                valueColor: Colors.greenAccent,
-              ),
-
-              const SizedBox(height: 20),
-              
-              // Action Button (Properly padded & aligned inside dialog)
-              SizedBox(
-                width: double.infinity,
-                height: 42,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Constants.primaryColor,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    elevation: 0,
-                  ),
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text(
-                    'Close',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                    // Language Selector Tile
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Constants.bgColor,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Constants.cardBorderColor),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.language, size: 18, color: Constants.primaryColor),
+                          const SizedBox(width: 12),
+                          Text(
+                            AppLanguage.tr('language'),
+                            style: const TextStyle(
+                              color: Constants.textMuted,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: AppLanguage.languageNames.containsKey(currentLangVal) ? currentLangVal : 'ar',
+                              dropdownColor: Constants.cardColor,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              icon: const Icon(Icons.arrow_drop_down, color: Constants.primaryColor),
+                              items: AppLanguage.languageNames.entries.map((entry) {
+                                return DropdownMenuItem<String>(
+                                  value: entry.key,
+                                  child: Text(entry.value),
+                                );
+                              }).toList(),
+                              onChanged: (newLang) async {
+                                if (newLang != null) {
+                                  await AppLanguage.setLanguage(newLang);
+                                  setDialogState(() {
+                                    currentLangVal = newLang;
+                                  });
+                                  if (mounted) setState(() {});
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 10),
+
+                    // Aligned List Items
+                    _buildInfoTile(
+                      icon: Icons.calendar_month,
+                      label: AppLanguage.tr('expiration'),
+                      value: ApiService.expDate,
+                      valueColor: Colors.amberAccent,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildInfoTile(
+                      icon: Icons.important_devices,
+                      label: AppLanguage.tr('device_id'),
+                      value: _deviceId,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildInfoTile(
+                      icon: Icons.person,
+                      label: AppLanguage.tr('user'),
+                      value: widget.code,
+                      valueColor: Colors.greenAccent,
+                    ),
+
+                    const SizedBox(height: 20),
+                    
+                    // Close Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 42,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Constants.primaryColor,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 0,
+                        ),
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text(
+                          AppLanguage.tr('close'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -280,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(width: 24),
 
-                    // Favourites Card Only
+                    // Favourites Card
                     Expanded(
                       flex: 1,
                       child: _buildFavoritesCard(),
@@ -293,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 12.0),
                 child: Text(
-                  '${ApiService.appName} - Powered by PESCADOR',
+                  AppLanguage.tr('powered_by'),
                   style: const TextStyle(color: Constants.textMuted, fontSize: 11),
                 ),
               ),
@@ -375,9 +433,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
-                      'LIVE TV',
-                      style: TextStyle(
+                    Text(
+                      AppLanguage.tr('live_tv'),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
@@ -392,7 +450,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        _isLoading ? 'Loading...' : '$_totalChannels Channels',
+                        _isLoading ? 'Loading...' : '$_totalChannels ${AppLanguage.tr('total_channels')}',
                         style: const TextStyle(
                           color: Constants.textMuted,
                           fontSize: 13,
@@ -422,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 code: widget.code,
                 type: 'favorites',
                 id: 0,
-                title: 'Favourites (المفضلة)',
+                title: AppLanguage.tr('favourites'),
               ),
             ),
           );
@@ -464,9 +522,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Favourites',
-                      style: TextStyle(
+                    Text(
+                      AppLanguage.tr('favourites'),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -474,7 +532,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '$_favCount Saved Channels',
+                      '$_favCount ${AppLanguage.tr('saved_channels')}',
                       style: const TextStyle(
                         color: Constants.textMuted,
                         fontSize: 12,
