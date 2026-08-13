@@ -4,6 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
 import '../services/api_service.dart';
+import '../services/app_language.dart';
 import 'player_screen.dart';
 
 class ChannelsScreen extends StatefulWidget {
@@ -149,6 +150,22 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     }
   }
 
+  Future<void> _reportChannel(dynamic channel) async {
+    if (channel == null) return;
+    final chId = int.tryParse(channel['id'].toString()) ?? 0;
+    if (chId == 0) return;
+
+    final res = await ApiService.reportChannel(chId);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res['message'] ?? AppLanguage.tr('report_submitted')),
+          backgroundColor: res['success'] == true ? Colors.green : Colors.redAccent,
+        ),
+      );
+    }
+  }
+
   String _formatLogoUrl(String? rawUrl) {
     if (rawUrl == null) return '';
     String url = rawUrl.trim();
@@ -182,7 +199,11 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
+                    icon: Icon(
+                      AppLanguage.isRtl ? Icons.arrow_forward_ios : Icons.arrow_back_ios,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 8),
@@ -195,7 +216,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                     ),
                   ),
                   const Spacer(),
-                  if (_selectedChannel != null)
+                  if (_selectedChannel != null) ...[
+                    IconButton(
+                      icon: const Icon(Icons.report_problem, color: Colors.amberAccent),
+                      tooltip: AppLanguage.tr('report_channel'),
+                      onPressed: () => _reportChannel(_selectedChannel),
+                    ),
                     IconButton(
                       icon: Icon(
                         _isFavorite(_selectedChannel) ? Icons.favorite : Icons.favorite_border,
@@ -203,6 +229,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                       ),
                       onPressed: () => _toggleFavorite(_selectedChannel),
                     ),
+                  ],
                 ],
               ),
             ),
@@ -214,10 +241,15 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   // Left Side: Channel List (340px)
                   Container(
                     width: 340,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Constants.bgColor,
                       border: Border(
-                        right: BorderSide(color: Constants.cardBorderColor, width: 1),
+                        right: AppLanguage.isRtl
+                            ? BorderSide.none
+                            : const BorderSide(color: Constants.cardBorderColor, width: 1),
+                        left: AppLanguage.isRtl
+                            ? const BorderSide(color: Constants.cardBorderColor, width: 1)
+                            : BorderSide.none,
                       ),
                     ),
                     child: Column(
@@ -236,11 +268,11 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                             child: TextField(
                               style: const TextStyle(color: Colors.white, fontSize: 13),
                               onChanged: (val) => setState(() => _searchQuery = val),
-                              decoration: const InputDecoration(
-                                hintText: 'Search channel...',
-                                hintStyle: TextStyle(color: Constants.textMuted, fontSize: 12),
+                              decoration: InputDecoration(
+                                hintText: AppLanguage.tr('search_channel_hint'),
+                                hintStyle: const TextStyle(color: Constants.textMuted, fontSize: 12),
                                 border: InputBorder.none,
-                                icon: Icon(Icons.search, color: Constants.textMuted, size: 16),
+                                icon: const Icon(Icons.search, color: Constants.textMuted, size: 16),
                               ),
                             ),
                           ),
@@ -251,10 +283,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                           child: _isLoading
                               ? const Center(child: CircularProgressIndicator(color: Constants.primaryColor))
                               : filteredChannels.isEmpty
-                                  ? const Center(
+                                  ? Center(
                                       child: Text(
-                                        'No Channels',
-                                        style: TextStyle(color: Constants.textMuted),
+                                        AppLanguage.tr('no_channels'),
+                                        style: const TextStyle(color: Constants.textMuted),
                                       ),
                                     )
                                   : ListView.builder(
@@ -277,10 +309,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                     child: Container(
                       color: Colors.black,
                       child: _selectedChannel == null
-                          ? const Center(
+                          ? Center(
                               child: Text(
-                                'Select a channel to play',
-                                style: TextStyle(color: Constants.textMuted),
+                                AppLanguage.tr('select_channel_to_play'),
+                                style: const TextStyle(color: Constants.textMuted),
                               ),
                             )
                           : GestureDetector(
@@ -309,7 +341,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                   // Channel Title Overlay (Top Left)
                                   Positioned(
                                     top: 16,
-                                    left: 16,
+                                    left: AppLanguage.isRtl ? null : 16,
+                                    right: AppLanguage.isRtl ? 16 : null,
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 12,
@@ -344,31 +377,56 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                     ),
                                   ),
 
-                                  // Action Overlay Buttons (Top Right: Favorite Only)
+                                  // Action Overlay Buttons (Top Right: Favorite & Report)
                                   Positioned(
                                     top: 16,
-                                    right: 16,
-                                    child: InkWell(
-                                      onTap: () => _toggleFavorite(_selectedChannel),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.7),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(
-                                            color: Colors.white.withOpacity(0.1),
+                                    right: AppLanguage.isRtl ? null : 16,
+                                    left: AppLanguage.isRtl ? 16 : null,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        InkWell(
+                                          onTap: () => _reportChannel(_selectedChannel),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.7),
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: Colors.white.withOpacity(0.1),
+                                              ),
+                                            ),
+                                            child: const Icon(
+                                              Icons.report_problem,
+                                              color: Colors.amberAccent,
+                                              size: 20,
+                                            ),
                                           ),
                                         ),
-                                        child: Icon(
-                                          _isFavorite(_selectedChannel)
-                                              ? Icons.favorite
-                                              : Icons.favorite_border,
-                                          color: _isFavorite(_selectedChannel)
-                                              ? Colors.redAccent
-                                              : Colors.white,
-                                          size: 20,
+                                        const SizedBox(width: 8),
+                                        InkWell(
+                                          onTap: () => _toggleFavorite(_selectedChannel),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.7),
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: Colors.white.withOpacity(0.1),
+                                              ),
+                                            ),
+                                            child: Icon(
+                                              _isFavorite(_selectedChannel)
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color: _isFavorite(_selectedChannel)
+                                                  ? Colors.redAccent
+                                                  : Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -399,7 +457,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
           decoration: BoxDecoration(
             color: isSelected ? Constants.activeCardColor : Colors.transparent,
             border: Border(
-              left: isSelected
+              left: isSelected && !AppLanguage.isRtl
+                  ? const BorderSide(color: Constants.primaryColor, width: 4)
+                  : BorderSide.none,
+              right: isSelected && AppLanguage.isRtl
                   ? const BorderSide(color: Constants.primaryColor, width: 4)
                   : BorderSide.none,
               bottom: const BorderSide(color: Constants.cardBorderColor, width: 0.5),
