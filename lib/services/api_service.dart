@@ -132,8 +132,8 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> reportChannel(int channelId) async {
-    // Uses web API endpoint for reporting & trigger auto-healer
-    final url = Uri.parse('http://app.hr-tech.site/app/api.php?action=report&channel_id=$channelId');
+    // Uses mobile API endpoint for reporting & trigger auto-healer dynamically
+    final url = Uri.parse('${Constants.apiUrl}?action=report&channel_id=$channelId');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
