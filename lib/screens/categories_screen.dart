@@ -232,7 +232,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Widget _buildCard(dynamic item, String type) {
-    final name = item['name'] ?? 'Unknown';
+    final rawName = (item['name'] ?? 'Unknown').toString();
+    final displayName = AppLanguage.translateName(rawName);
     final count = item['channels_count'] ?? 0;
 
     return Material(
@@ -246,7 +247,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 code: widget.code,
                 type: type,
                 id: int.parse(item['id'].toString()),
-                title: name,
+                title: displayName,
               ),
             ),
           );
@@ -287,7 +288,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      displayName,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
