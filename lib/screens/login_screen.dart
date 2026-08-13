@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../constants.dart';
 import '../services/api_service.dart';
+import '../services/app_language.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -43,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
-      setState(() => _errorMessage = 'Please enter your access code');
+      setState(() => _errorMessage = AppLanguage.tr('please_enter_code'));
       return;
     }
 
@@ -65,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } else {
       setState(() {
-        _errorMessage = response['message'] ?? 'Invalid access code';
+        _errorMessage = response['message'] ?? AppLanguage.tr('invalid_code');
       });
     }
   }
@@ -116,12 +117,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Enter your access code to start watching',
-                  style: TextStyle(
+                Text(
+                  AppLanguage.tr('login_sub'),
+                  style: const TextStyle(
                     color: Constants.textMuted,
-                    fontSize: 16,
+                    fontSize: 15,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
                 if (_errorMessage.isNotEmpty) ...[
@@ -150,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: const TextStyle(color: Constants.textMain, fontSize: 18, letterSpacing: 2),
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
-                      hintText: 'Access Code',
+                      hintText: AppLanguage.tr('access_code_hint'),
                       hintStyle: TextStyle(color: Constants.textMuted.withOpacity(0.5), letterSpacing: 0),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -173,9 +175,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Connect',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        : Text(
+                            AppLanguage.tr('connect_btn'),
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                   ),
                 ),
@@ -192,9 +194,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                   },
                   icon: const Icon(Icons.card_giftcard, color: Constants.primaryColor),
-                  label: const Text(
-                    'احصل على تفعيل مجاني',
-                    style: TextStyle(
+                  label: Text(
+                    AppLanguage.tr('free_trial_btn'),
+                    style: const TextStyle(
                       color: Constants.primaryColor,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
